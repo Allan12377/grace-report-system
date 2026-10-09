@@ -9,7 +9,7 @@
   <div class="form-section-title"><span>01</span><div><h3>Personal information</h3><p>Basic details and class placement</p></div></div>
   <div class="form-grid">
     <label>Full name *<input required name="full_name" value="<?= h($student['full_name']) ?>" placeholder="Student's full name"></label>
-    <label>Admission number *<input required name="admission_no" value="<?= h($student['admission_no']) ?>" placeholder="e.g. GCP1001"></label>
+    <label>Admission number<?= (int)$student['id']>0?' *':'' ?><input name="admission_no" value="<?= h($student['admission_no']) ?>" <?= (int)$student['id']>0?'required':'readonly' ?> placeholder="Generated when saved"><small class="field-hint"><?= (int)$student['id']>0?'Edit the assigned admission number if required.':'Automatically generated from the next available school number.' ?></small></label>
     <label>Gender<select name="gender"><option value="">Select gender</option><?php foreach(['Female','Male','Other'] as $gender): ?><option value="<?= h($gender) ?>" <?= $student['gender']===$gender?'selected':'' ?>><?= h($gender) ?></option><?php endforeach; ?></select></label>
     <label>Date of birth<input type="date" name="dob" value="<?= h($student['dob']) ?>"></label>
     <label>Class<select name="class_id" required><?php foreach($classes as $class): ?><option value="<?= (int)$class['id'] ?>" <?= (int)$student['class_id']===(int)$class['id']?'selected':'' ?>><?= h($class['name']) ?></option><?php endforeach; ?></select></label>

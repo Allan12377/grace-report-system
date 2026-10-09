@@ -60,3 +60,23 @@ function purge_expired_student_trash(PDO $pdo): int
 
     return count($expired);
 }
+
+function next_student_admission_number(PDO $pdo): string
+{
+    $numbers = $pdo->query('SELECT admission_no FROM students')->fetchAll(PDO::FETCH_COLUMN);
+    $used = [];
+    $highest = 0;
+    foreach ($numbers as $number) {
+        $number = (string)$number;
+        $used[$number] = true;
+        if (preg_match('/^GCP([0-9]+)$/i', $number, $matches)) {
+            $highest = max($highest, (int)$matches[1]);
+        }
+    }
+
+    do {
+        $candidate = 'GCP' . str_pad((string)++$highest, 4, '0', STR_PAD_LEFT);
+    } while (isset($used[$candidate]));
+
+    return $candidate;
+}

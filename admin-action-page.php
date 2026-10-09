@@ -6,7 +6,7 @@ $term=(int)($_GET['term']??1);
 $classes=$pdo->query('SELECT * FROM classes ORDER BY level')->fetchAll();
 if($page==='student_form'){
     $id=(int)($_GET['id']??0);
-    $student=['id'=>0,'admission_no'=>'','full_name'=>'','gender'=>'','dob'=>'','class_id'=>$classes[0]['id']??1,'attendance_type'=>'day','parent_name'=>'','parent_phone'=>'','address'=>'','status'=>'Active','admission_date'=>date('Y-m-d')];
+    $student=['id'=>0,'admission_no'=>next_student_admission_number($pdo),'full_name'=>'','gender'=>'','dob'=>'','class_id'=>$classes[0]['id']??1,'attendance_type'=>'day','parent_name'=>'','parent_phone'=>'','address'=>'','status'=>'Active','admission_date'=>date('Y-m-d')];
     if($id>0){
         $query=$pdo->prepare('SELECT * FROM students WHERE id=? AND deleted_at IS NULL');
         $query->execute([$id]);
