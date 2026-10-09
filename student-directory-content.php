@@ -55,12 +55,6 @@ $students=$query->fetchAll();
           <td class="trash-actions">
             <a class="btn secondary" href="index.php?page=profile&id=<?= (int)$student['id'] ?>">View</a>
             <a class="btn secondary" href="index.php?page=student_form&id=<?= (int)$student['id'] ?>">Edit</a>
-            <form method="post" onsubmit="return confirm('Move this student to Recently deleted? Their marks and academic history will be kept for 90 days.')">
-              <input type="hidden" name="csrf" value="<?= h(csrf()) ?>">
-              <input type="hidden" name="action" value="trash_student">
-              <input type="hidden" name="student_id" value="<?= (int)$student['id'] ?>">
-              <button class="btn danger" type="submit">Move to trash</button>
-            </form>
           </td>
         </tr>
       <?php endforeach; ?>

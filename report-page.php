@@ -167,9 +167,9 @@ body.report-page{margin:0;background:#edf2ed;color:#16352f;font:12px/1.3 Arial,H
 .signature-name{display:block;margin:0 auto;color:#203e32;font-size:9px;font-weight:700;line-height:1.15}
 .signature-role{padding-top:2px;border-top:1px solid #60766b!important;color:#496257!important;font-size:7px!important}
 .signature-image{display:block;max-width:42mm;max-height:13mm;object-fit:contain;margin:0 auto 1px}
-.report-stamp{position:relative;width:29mm;min-width:29mm;height:18mm;display:grid;place-items:center;overflow:hidden}
+.report-stamp{position:relative;width:40mm;min-width:40mm;height:25mm;display:grid;place-items:center;overflow:visible}
 .report-stamp img{display:block;width:100%;height:100%;object-fit:contain}
-.stamp-date{position:absolute;left:50%;bottom:2mm;transform:translateX(-50%);padding:.4mm 1mm;border-radius:1px;background:#fffdf8d9;color:#842f35;font:bold 4.5px/1.1 Arial,sans-serif;white-space:nowrap;letter-spacing:.04em}
+.stamp-date{position:absolute;z-index:2;left:50%;bottom:14%;transform:translateX(-50%);padding:0;background:transparent;color:#70272b;font:bold 5px/1.1 Arial,sans-serif;white-space:nowrap;letter-spacing:.035em;-webkit-text-stroke:.12mm #fff;text-shadow:0 0 .8mm #fff,0 0 1.2mm #fff}
 .requirements-table{width:100%;margin:3px 0 0;border-collapse:collapse;table-layout:fixed;font-size:9px}
 .requirements-table th,.requirements-table td{padding:3px 6px;border:1px solid #c5d5c6;text-align:left}
 .requirements-table th{background:#edf4eb;color:#294d3a;font-size:8px;text-transform:uppercase}

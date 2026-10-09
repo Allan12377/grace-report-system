@@ -2,7 +2,7 @@
   <div><div class="eyebrow">STUDENT INFORMATION</div><h1><?= $student['id']?'Edit learner':'Register a learner' ?></h1><p>Assign the learner’s class and Day or Boarding status so the correct requirements appear on the report.</p></div>
   <a class="btn secondary" href="index.php?page=students">Back to students</a>
 </div>
-<form class="panel form-panel" method="post" enctype="multipart/form-data">
+<form class="panel form-panel" method="post" enctype="multipart/form-data" onsubmit="return this.querySelector('[name=status]').value!=='Trash'||confirm('Move this learner to Recently deleted? The record can be restored for 90 days before automatic deletion.')">
   <input type="hidden" name="csrf" value="<?= h(csrf()) ?>">
   <input type="hidden" name="action" value="save_student">
   <input type="hidden" name="id" value="<?= (int)$student['id'] ?>">
@@ -16,7 +16,7 @@
     <label>Attendance type<select name="attendance_type"><option value="day" <?= ($student['attendance_type']??'day')==='day'?'selected':'' ?>>Day</option><option value="boarding" <?= ($student['attendance_type']??'day')==='boarding'?'selected':'' ?>>Boarding</option></select><small class="field-hint">Determines which requirements print on this learner’s report.</small></label>
     <label>Admission date<input type="date" name="admission_date" value="<?= h($student['admission_date']) ?>"></label>
     <label>Profile photograph<input type="file" name="photo" accept="image/png,image/jpeg,image/webp"><small class="field-hint">JPG, PNG or WEBP · maximum 3 MB</small></label>
-    <label>Status<select name="status"><option <?= $student['status']==='Active'?'selected':'' ?>>Active</option><option <?= $student['status']==='Inactive'?'selected':'' ?>>Inactive</option></select><small class="field-hint">Inactive pupils remain in historical records.</small></label>
+    <label>Status<select name="status"><option value="Active" <?= $student['status']==='Active'?'selected':'' ?>>Active</option><option value="Inactive" <?= $student['status']==='Inactive'?'selected':'' ?>>Inactive</option><?php if ((int)$student['id']>0): ?><option value="Trash">Trash</option><?php endif; ?></select><small class="field-hint">Inactive pupils remain in history. Choose Trash to move this learner to Recently deleted for 90 days.</small></label>
   </div>
   <div class="form-section-title"><span>02</span><div><h3>Parent or guardian</h3><p>Contact information for school communication</p></div></div>
   <div class="form-grid">
