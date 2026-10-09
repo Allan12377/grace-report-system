@@ -68,7 +68,7 @@ function next_student_admission_number(PDO $pdo): string
     $highest = 0;
     foreach ($numbers as $number) {
         $number = (string)$number;
-        $used[$number] = true;
+        $used[strtoupper($number)] = true;
         if (preg_match('/^GCP([0-9]+)$/i', $number, $matches)) {
             $highest = max($highest, (int)$matches[1]);
         }
@@ -76,7 +76,7 @@ function next_student_admission_number(PDO $pdo): string
 
     do {
         $candidate = 'GCP' . str_pad((string)++$highest, 4, '0', STR_PAD_LEFT);
-    } while (isset($used[$candidate]));
+    } while (isset($used[strtoupper($candidate)]));
 
     return $candidate;
 }

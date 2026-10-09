@@ -28,6 +28,51 @@ if($_SERVER['REQUEST_METHOD']==='POST'&&logged()&&($_POST['action']??'')==='save
     logaction($pdo,'Move student to trash','Student ID '.$studentId.'; retained for 90 days');
     go('index.php?page=student_trash&updated=1');
 }
+if($_SERVER['REQUEST_METHOD']==='POST'&&logged()&&($_POST['action']??'')==='upload_student_photos'){
+    checkcsrf();
+    $files=$_FILES['student_photos']??null;
+    if(!is_array($files)||!isset($files['name'])||!is_array($files['name'])){
+        $_SESSION['student_photo_upload_result']=['uploaded'=>0,'errors'=>['Select one or more image files to upload.']];
+        go('index.php?page=student_photos');
+    }
+    $uploaded=[];
+    $errors=[];
+    $seen=[];
+    $lookup=$pdo->prepare('SELECT id FROM students WHERE admission_no=? AND deleted_at IS NULL');
+    $savePhoto=$pdo->prepare('UPDATE students SET photo=? WHERE id=? AND deleted_at IS NULL');
+    try{
+        if(!is_dir(UPLOAD_DIR)&&!mkdir(UPLOAD_DIR,0770,true)&&!is_dir(UPLOAD_DIR))throw new RuntimeException('The uploads folder is not available.');
+        $pdo->beginTransaction();
+        foreach($files['name'] as $index=>$originalName){
+            if(($files['error'][$index]??UPLOAD_ERR_NO_FILE)===UPLOAD_ERR_NO_FILE)continue;
+            if(($files['error'][$index]??UPLOAD_ERR_OK)!==UPLOAD_ERR_OK){$errors[]='Upload failed for '.basename((string)$originalName).'.';continue;}
+            if(($files['size'][$index]??0)>3*1024*1024){$errors[]=basename((string)$originalName).' is larger than 3 MB.';continue;}
+            $admissionNo=pathinfo(basename((string)$originalName),PATHINFO_FILENAME);
+            if(!preg_match('/^[A-Za-z0-9_-]{1,50}$/',$admissionNo)){$errors[]='Use the pupil admission number as the filename, e.g. GCP0001.jpg.';continue;}
+            if(isset($seen[$admissionNo])){$errors[]='More than one image was selected for '.$admissionNo.'.';continue;}
+            $seen[$admissionNo]=true;
+            $mime=(new finfo(FILEINFO_MIME_TYPE))->file((string)$files['tmp_name'][$index]);
+            $extension=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime]??null;
+            if($extension===null){$errors[]=basename((string)$originalName).' is not a supported JPG, PNG, or WEBP image.';continue;}
+            $lookup->execute([$admissionNo]);
+            $studentId=$lookup->fetchColumn();
+            if($studentId===false){$errors[]='No active or inactive pupil matches admission number '.$admissionNo.'.';continue;}
+            $photoPath='uploads/'.bin2hex(random_bytes(12)).'.'.$extension;
+            if(!move_uploaded_file((string)$files['tmp_name'][$index],__DIR__.'/'.$photoPath))throw new RuntimeException('Could not save '.basename((string)$originalName).'. Check that the uploads folder is writable.');
+            $uploaded[]=$photoPath;
+            $savePhoto->execute([$photoPath,(int)$studentId]);
+            if($savePhoto->rowCount()!==1)throw new RuntimeException('Could not link the uploaded image to '.$admissionNo.'.');
+        }
+        if($uploaded!==[])logaction($pdo,'Bulk upload pupil photos',count($uploaded).' photo(s) matched by admission number');
+        $pdo->commit();
+        $_SESSION['student_photo_upload_result']=['uploaded'=>count($uploaded),'errors'=>$errors];
+    }catch(Throwable $uploadError){
+        if($pdo->inTransaction())$pdo->rollBack();
+        foreach($uploaded as $photoPath)if(is_file(__DIR__.'/'.$photoPath))unlink(__DIR__.'/'.$photoPath);
+        $_SESSION['student_photo_upload_result']=['uploaded'=>0,'errors'=>[$uploadError instanceof PDOException?'The pupil photos could not be linked to records. Please try again.':$uploadError->getMessage()]];
+    }
+    go('index.php?page=student_photos');
+}
 if($_SERVER['REQUEST_METHOD']==='POST'){$action=$_POST['action']??'';if($action==='login'){checkcsrf();$q=$pdo->prepare('SELECT * FROM admins WHERE username=?');$q->execute([trim($_POST['username']??'')]);$a=$q->fetch();if($a&&password_verify($_POST['password']??'',$a['password_hash'])){session_regenerate_id(true);$_SESSION['admin']=$a['username'];logaction($pdo,'Login');go();}$loginError='Username or password is incorrect.';}elseif(logged()){checkcsrf();try{if($action==='save_student'){$id=(int)($_POST['id']??0);if($id>0){$existing=$pdo->prepare('SELECT id FROM students WHERE id=? AND deleted_at IS NULL');$existing->execute([$id]);if(!$existing->fetchColumn())throw new RuntimeException('This student record is in trash and cannot be edited.');}$class=(int)$_POST['class_id'];$attendanceType=in_array($_POST['attendance_type']??'day',['day','boarding'],true)?$_POST['attendance_type']:'day';$name=trim($_POST['full_name']??'');$adm=trim($_POST['admission_no']??'');if($name===''||($id>0&&$adm===''))throw new RuntimeException('Name and admission number are required.');$photo='';if(!empty($_FILES['photo']['name'])&&is_uploaded_file($_FILES['photo']['tmp_name'])){$mime=(new finfo(FILEINFO_MIME_TYPE))->file($_FILES['photo']['tmp_name']);$ext=['image/jpeg'=>'jpg','image/png'=>'png','image/webp'=>'webp'][$mime]??null;if(!$ext)throw new RuntimeException('Photo must be JPG, PNG, or WEBP.');if($_FILES['photo']['size']>3*1024*1024)throw new RuntimeException('Photo must be under 3 MB.');$photo='uploads/'.bin2hex(random_bytes(12)).'.'.$ext;if(!move_uploaded_file($_FILES['photo']['tmp_name'],__DIR__.'/'.$photo))throw new RuntimeException('The pupil photo could not be saved.');}$data=[$adm,$name,$_POST['gender']??'',$_POST['dob']??'',$class,trim($_POST['parent_name']??''),trim($_POST['parent_phone']??''),trim($_POST['address']??''),$photo,$_POST['status']??'Active',$_POST['admission_date']??''];if($id){$sql='UPDATE students SET admission_no=?,full_name=?,gender=?,dob=?,class_id=?,parent_name=?,parent_phone=?,address=?,photo=CASE WHEN ?="" THEN photo ELSE ? END,status=?,admission_date=?,attendance_type=? WHERE id=? AND deleted_at IS NULL';$pdo->prepare($sql)->execute([$adm,$name,$_POST['gender']??'',$_POST['dob']??'',$class,trim($_POST['parent_name']??''),trim($_POST['parent_phone']??''),trim($_POST['address']??''),$photo,$photo,$_POST['status']??'Active',$_POST['admission_date']??'',$attendanceType,$id]);logaction($pdo,'Update pupil',$adm);}else{$pdo->exec('BEGIN IMMEDIATE');try{$adm=next_student_admission_number($pdo);$data[0]=$adm;$pdo->prepare('INSERT INTO students(admission_no,full_name,gender,dob,class_id,parent_name,parent_phone,address,photo,status,admission_date,attendance_type) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)')->execute([...$data,$attendanceType]);$id=(int)$pdo->lastInsertId();$pdo->prepare('INSERT OR IGNORE INTO enrollments(student_id,class_id,academic_year,note) VALUES(?,?,?,?)')->execute([$id,$class,(int)date('Y'),'Admission']);logaction($pdo,'Add pupil',$adm);$pdo->commit();}catch(Throwable $saveError){if($pdo->inTransaction())$pdo->rollBack();throw $saveError;}}go('index.php?page=students&saved=1');}
 if($action==='save_marks'){$sid=(int)$_POST['student_id'];$year=(int)$_POST['year'];$term=(int)$_POST['term'];$assessment=$_POST['assessment']??'EOT';if(!in_array($assessment,['BOT','MID','EOT'],true))throw new RuntimeException('Choose a valid assessment period.');$activeStudent=$pdo->prepare('SELECT id FROM students WHERE id=? AND status="Active" AND deleted_at IS NULL');$activeStudent->execute([$sid]);if(!$activeStudent->fetchColumn())throw new RuntimeException('Marks can only be saved for an active student.');foreach(($_POST['score']??[]) as $subject=>$score){if($score==='')continue;$score=(float)$score;if($score<0||$score>100)throw new RuntimeException('Marks must be between 0 and 100.');$remark=trim((string)($_POST['remark'][$subject]??''));if($remark==='')$remark=report_remark($score,$sid+(int)$subject+$year+$term);$pdo->prepare('INSERT INTO marks(student_id,subject_id,academic_year,term,assessment,score,teacher_comment) VALUES(?,?,?,?,?,?,?) ON CONFLICT(student_id,subject_id,academic_year,term,assessment) DO UPDATE SET score=excluded.score,teacher_comment=excluded.teacher_comment')->execute([$sid,(int)$subject,$year,$term,$assessment,$score,$remark]);}$pdo->prepare('INSERT INTO comments(student_id,academic_year,term,class_comment,head_comment) VALUES(?,?,?,?,?) ON CONFLICT(student_id,academic_year,term) DO UPDATE SET class_comment=excluded.class_comment,head_comment=excluded.head_comment')->execute([$sid,$year,$term,trim($_POST['class_comment']??''),trim($_POST['head_comment']??'')]);logaction($pdo,'Save marks','Pupil ID '.$sid);go('index.php?page=marks&student='.$sid.'&class='.(int)($_POST['class_id']??0).'&year='.$year.'&term='.$term.'&assessment='.$assessment.'&saved=1');}
 if($action==='save_settings'){
@@ -150,7 +195,7 @@ if($_SERVER['REQUEST_METHOD']==='POST'&&logged()&&in_array($_POST['action']??'',
         go('index.php?page=student_trash');
     }
 }
-$school=setting($pdo,'school_name','Grace Christian Primary School, Kacungwa');$page=$_GET['page']??'dashboard';if(!logged()&&$page!=='login')$page='login';if($page==='login'){require __DIR__.'/login-page.php';exit;}if(in_array($page,['settings','student_form','student_trash','students'],true)){require __DIR__.'/admin-action-page.php';exit;}
+$school=setting($pdo,'school_name','Grace Christian Primary School, Kacungwa');$page=$_GET['page']??'dashboard';if(!logged()&&$page!=='login')$page='login';if($page==='login'){require __DIR__.'/login-page.php';exit;}if(in_array($page,['settings','student_form','student_trash','student_photos','students'],true)){require __DIR__.'/admin-action-page.php';exit;}
 $school=setting($pdo,'school_name','Grace Christian Primary School, Kacungwa');$classes=$pdo->query('SELECT * FROM classes ORDER BY level')->fetchAll();$year=(int)($_GET['year']??date('Y'));$term=(int)($_GET['term']??1);
 if(in_array($page,['profile','print'],true)){
     $lookupId=(int)($_GET[$page==='profile'?'id':'student']??0);

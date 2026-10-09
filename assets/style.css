@@ -164,6 +164,12 @@
 .btn.danger:hover{background:#8d2d2d}
 .trash-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .trash-actions form{margin:0}
+.photo-upload-instructions{padding:16px 18px;border:1px solid #d7e6dc;border-radius:12px;background:#f4f8f1;color:#345849}
+.photo-upload-instructions p{margin:8px 0 0}
+.photo-upload-instructions code{padding:2px 5px;border-radius:4px;background:#e5eee8}
+.photo-upload-form{margin-top:18px}
+:root[data-theme="dark"] .photo-upload-instructions{background:#20312c;color:#d5e5dc;border-color:#3a5047}
+:root[data-theme="dark"] .photo-upload-instructions code{background:#2d403a;color:#e3ece8}
 @media(max-width:650px){.trash-actions{align-items:stretch}.trash-actions form,.trash-actions .btn{width:100%}}
 :root[data-theme="dark"]{color-scheme:dark;--ink:#e3ece8;--muted:#a4b6af;--teal:#3b9b8c;--teal-dark:#287d72;--mint:#203d36;--blue:#26364b;--gold:#453a24;--purple:#382e4d;--line:#334640;--surface:#1d2b28;--canvas:#111a18;--shadow:0 10px 28px #0005}
 :root[data-theme="dark"] body{background:var(--canvas);color:var(--ink)}

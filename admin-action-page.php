@@ -21,7 +21,7 @@ if($page==='student_form'){
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title><?= h($page==='settings'?'School settings':($page==='student_trash'?'Recently deleted':($page==='students'?'Students':'Learner details'))) ?> · <?= h($school) ?></title>
+  <title><?= h($page==='settings'?'School settings':($page==='student_trash'?'Recently deleted':($page==='student_photos'?'Upload pupil photos':($page==='students'?'Students':'Learner details')))) ?> · <?= h($school) ?></title>
   <link rel="stylesheet" href="assets/style.css">
   <script defer src="assets/app.js"></script>
 </head>
@@ -33,6 +33,7 @@ if($page==='student_form'){
     <a class="nav-link" href="index.php"><span class="nav-symbol">▦</span>Dashboard</a>
     <a class="nav-link" href="index.php?page=students"><span class="nav-symbol">◉</span>Students</a>
     <a class="nav-link <?= $page==='student_trash'?'active':'' ?>" href="index.php?page=student_trash"><span class="nav-symbol">▣</span>Recently deleted</a>
+    <a class="nav-link <?= $page==='student_photos'?'active':'' ?>" href="index.php?page=student_photos"><span class="nav-symbol">▧</span>Pupil photos</a>
     <a class="nav-link" href="index.php?page=marks"><span class="nav-symbol">▤</span>Marks entry</a>
     <a class="nav-link" href="index.php?page=reports"><span class="nav-symbol">▧</span>Report cards</a>
     <div class="side-label">ADMINISTRATION</div>
@@ -43,12 +44,12 @@ if($page==='student_form'){
   <main class="main-area">
     <header class="topbar">
       <button class="menu-toggle" id="menuToggle" aria-label="Open navigation">☰</button>
-      <div><div class="eyebrow"><?= h($school) ?></div><div class="top-title"><?= h($page==='settings'?'School settings':($page==='student_trash'?'Recently deleted':($page==='students'?'Students':($student['id']?'Edit learner':'Register a learner')))) ?></div></div>
+      <div><div class="eyebrow"><?= h($school) ?></div><div class="top-title"><?= h($page==='settings'?'School settings':($page==='student_trash'?'Recently deleted':($page==='student_photos'?'Upload pupil photos':($page==='students'?'Students':($student['id']?'Edit learner':'Register a learner'))))) ?></div></div>
       <div class="top-actions"><span class="date-chip"><?= date('D, d M Y') ?></span><div class="avatar-admin">A</div><div class="admin-name"><b><?= h($_SESSION['admin']) ?></b><small>Administrator</small></div></div>
     </header>
     <div class="content">
-      <?php if(isset($error)): ?><div class="alert error"><?= h($error) ?></div><?php elseif(isset($_SESSION['student_trash_error'])): ?><div class="alert error"><?= h($_SESSION['student_trash_error']) ?></div><?php unset($_SESSION['student_trash_error']); ?><?php elseif(isset($_GET['updated'])): ?><div class="alert success">Student record updated.</div><?php elseif(isset($_GET['saved'])): ?><div class="alert success">Changes saved successfully.</div><?php endif; ?>
-      <?php require __DIR__ . ($page==='settings' ? '/settings-page-content.php' : ($page==='student_trash' ? '/student-trash-content.php' : ($page==='students' ? '/student-directory-content.php' : '/student-form-content.php'))); ?>
+      <?php if(isset($error)): ?><div class="alert error"><?= h($error) ?></div><?php elseif(isset($_SESSION['student_trash_error'])): ?><div class="alert error"><?= h($_SESSION['student_trash_error']) ?></div><?php unset($_SESSION['student_trash_error']); ?><?php elseif(isset($_SESSION['student_photo_upload_result'])): $uploadResult=$_SESSION['student_photo_upload_result']; unset($_SESSION['student_photo_upload_result']); if($uploadResult['uploaded']>0): ?><div class="alert success"><?= (int)$uploadResult['uploaded'] ?> pupil photo(s) uploaded and matched.</div><?php endif; foreach($uploadResult['errors'] as $uploadMessage): ?><div class="alert error"><?= h($uploadMessage) ?></div><?php endforeach; ?><?php elseif(isset($_GET['updated'])): ?><div class="alert success">Student record updated.</div><?php elseif(isset($_GET['saved'])): ?><div class="alert success">Changes saved successfully.</div><?php endif; ?>
+      <?php require __DIR__ . ($page==='settings' ? '/settings-page-content.php' : ($page==='student_trash' ? '/student-trash-content.php' : ($page==='student_photos' ? '/student-photo-upload-content.php' : ($page==='students' ? '/student-directory-content.php' : '/student-form-content.php')))); ?>
     </div>
   </main>
 </div>

@@ -24,6 +24,7 @@ $students=$query->fetchAll();
   </div>
   <div class="action-row">
     <a class="btn secondary" href="index.php?page=student_trash">Recently deleted</a>
+    <a class="btn secondary" href="index.php?page=student_photos">Upload pupil photos</a>
     <a class="btn" href="index.php?page=student_form">Register pupil</a>
   </div>
 </div>
