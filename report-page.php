@@ -162,14 +162,15 @@ body.report-page{margin:0;background:#edf2ed;color:#16352f;font:12px/1.3 Arial,H
 .comment-box h3,.requirements h3{font-size:10px;color:#2f543d;margin:0 0 4px}
 .comment-box p{margin:0;font-size:10px;line-height:1.35;min-height:14px}
 .signature-row{display:flex;justify-content:flex-end;align-items:center;gap:5mm;margin-top:5px}
+.head-signature-row{justify-content:flex-start;gap:4mm;min-height:25mm;margin-top:3px}
 .signature-line{min-width:42mm;text-align:center;padding:2px 5px 0;color:#294d3a;font:9px Arial,sans-serif}
 .signature-line small{display:block;margin-top:1px;color:#294d3a;font:8px Arial,sans-serif}
 .signature-name{display:block;margin:0 auto;color:#203e32;font-size:9px;font-weight:700;line-height:1.15}
 .signature-role{padding-top:2px;border-top:1px solid #60766b!important;color:#496257!important;font-size:7px!important}
 .signature-image{display:block;max-width:42mm;max-height:13mm;object-fit:contain;margin:0 auto 1px}
-.report-stamp{position:relative;width:40mm;min-width:40mm;height:25mm;display:grid;place-items:center;overflow:visible}
+.report-stamp{position:relative;flex:0 0 25mm;width:25mm;height:25mm;display:grid;place-items:center;overflow:visible}
 .report-stamp img{display:block;width:100%;height:100%;object-fit:contain}
-.stamp-date{position:absolute;z-index:2;left:50%;bottom:14%;transform:translateX(-50%);padding:0;background:transparent;color:#70272b;font:bold 5px/1.1 Arial,sans-serif;white-space:nowrap;letter-spacing:.035em;-webkit-text-stroke:.12mm #fff;text-shadow:0 0 .8mm #fff,0 0 1.2mm #fff}
+.stamp-date{position:absolute;z-index:2;left:50%;top:77%;transform:translate(-50%,-50%);padding:.6mm 1.2mm;border: .15mm solid #183d78;border-radius:1mm;background:#ffffffd9;color:#102d62;font:bold 6px/1.1 Arial,sans-serif;white-space:nowrap;letter-spacing:.02em;box-shadow:0 0 .5mm #fff}
 .requirements-table{width:100%;margin:3px 0 0;border-collapse:collapse;table-layout:fixed;font-size:9px}
 .requirements-table th,.requirements-table td{padding:3px 6px;border:1px solid #c5d5c6;text-align:left}
 .requirements-table th{background:#edf4eb;color:#294d3a;font-size:8px;text-transform:uppercase}
@@ -326,7 +327,7 @@ body.report-page{margin:0;background:#edf2ed;color:#16352f;font:12px/1.3 Arial,H
   </section>
   <section class="comment-box">
     <h3>HEAD TEACHER’S COMMENTS</h3><p><?= h($headComment) ?></p>
-    <div class="signature-row"><div class="signature-line"><?php if ($showSignature && $signatureUrl !== ''): ?><img class="signature-image" src="<?= h($signatureUrl) ?>" alt="Head teacher signature"><?php endif; ?><strong class="signature-name"><?= h($schoolSettings['head_teacher_name'] ?? '') ?></strong><small class="signature-role">Head teacher</small></div><?php if ($showStamp && $stampUrl !== ''): ?><div class="report-stamp" aria-label="Official school stamp"><img src="<?= h($stampUrl) ?>" alt=""><span class="stamp-date"><?= h($printedDate) ?></span></div><?php endif; ?></div>
+    <div class="signature-row head-signature-row"><?php if ($showStamp && $stampUrl !== ''): ?><div class="report-stamp" aria-label="Official school stamp"><img src="<?= h($stampUrl) ?>" alt="Official school stamp"><span class="stamp-date"><?= h($printedDate) ?></span></div><?php endif; ?><div class="signature-line"><?php if ($showSignature && $signatureUrl !== ''): ?><img class="signature-image" src="<?= h($signatureUrl) ?>" alt="Head teacher signature"><?php endif; ?><strong class="signature-name"><?= h($schoolSettings['head_teacher_name'] ?? '') ?></strong><small class="signature-role">Head teacher</small></div></div>
   </section>
   <section class="requirements">
     <h3>SCHOOL REQUIREMENTS FOR NEXT TERM · <?= h($attendanceType === 'boarding' ? 'BOARDING' : 'DAY') ?></h3>
